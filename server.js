@@ -178,7 +178,53 @@ apiRoutes.get('/users/:id', function(req, res) {
   }
 });
 
-// route to return a single user (GET http://localhost:8080/api/users/:id)
+// route to update a single user (PATCH http://localhost:8080/api/users/:id)
+apiRoutes.patch('/users/:id', function(req, res) {
+
+  var userId = req.params.id;
+
+  var name = req.body.name;
+  var password = req.body.password;
+  var admin = req.body.admin;
+
+  if(userId) {
+    console.log(userId);
+
+    User.findOne({
+      _id: userId
+    }, function(err, user){
+      if(err) {
+        return res.status(404).send({
+            success: false,
+            message: 'User not found'
+        });
+      } else {
+        //update the user
+
+        name ? user.name = name : false;
+        password ? user.password = password : false;
+        admin != undefined ? user.admin = admin : false;
+
+        user.save(function(err) {
+          if(err) {
+            return res.status(422).send({
+                success: false,
+                message: 'Error updating user',
+                error : err
+            });
+          } else {
+            return res.status(200).send({
+                success: true,
+                message: 'User updated successfully'
+            });
+          }
+        })
+      }
+    });
+  }
+});
+
+// route to delete a single user (DELETE http://localhost:8080/api/users/:id)
 apiRoutes.delete('/users/:id', function(req, res) {
 
   var userId = req.params.id;
