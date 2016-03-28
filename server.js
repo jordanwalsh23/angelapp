@@ -80,13 +80,17 @@ apiRoutes.post('/register', function(req, res) {
   var thisName = req.body.name;
   var thisPassword = req.body.password;
   var thisAdmin = req.body.admin;
+  var thisEmail = req.body.email;
+  var thisMobile = req.body.mobile;
 
   if(thisName && thisPassword && (thisAdmin != undefined)) {
     // create a sample user
     var u = new User({
       name: thisName,
       password: thisPassword,
-      admin: thisAdmin
+      admin: thisAdmin,
+      email: thisEmail,
+      mobile: thisMobile
     });
 
     // save the sample user
@@ -166,7 +170,7 @@ apiRoutes.get('/users/:id', function(req, res) {
     User.findOne({
       _id: userId
     }, function(err, user){
-      if(err) {
+      if(err || user == null) {
         return res.status(404).send({
             success: false,
             message: 'User not found'
@@ -186,6 +190,8 @@ apiRoutes.patch('/users/:id', function(req, res) {
   var name = req.body.name;
   var password = req.body.password;
   var admin = req.body.admin;
+  var email = req.body.email;
+  var mobile = req.body.mobile;
 
   if(userId) {
     console.log(userId);
@@ -204,6 +210,8 @@ apiRoutes.patch('/users/:id', function(req, res) {
         name ? user.name = name : false;
         password ? user.password = password : false;
         admin != undefined ? user.admin = admin : false;
+        email ? user.email = email : false;
+        mobile ? user.mobile = mobile : false;
 
         user.save(function(err) {
           if(err) {
