@@ -77,7 +77,40 @@ apiRoutes.post('/authenticate', function(req, res) {
 // route to authenticate a user (POST http://localhost:8080/api/authenticate)
 apiRoutes.post('/register', function(req, res) {
 
+  var thisName = req.body.name;
+  var thisPassword = req.body.password;
+  var thisAdmin = req.body.admin;
 
+  if(thisName && thisPassword && (thisAdmin != undefined)) {
+    // create a sample user
+    var u = new User({
+      name: thisName,
+      password: thisPassword,
+      admin: thisAdmin
+    });
+
+    // save the sample user
+    u.save(function(err) {
+     if (err) throw err;
+
+     console.log('User saved successfully');
+     var token = jwt.sign(u, app.get('superSecret'), {
+       expiresInMinutes: 1440 // expires in 24 hours
+     });
+
+     // return the information including token as JSON
+     res.json({
+       success: true,
+       message: 'User created successfully',
+       token: token
+     });
+    });
+  } else {
+    return res.status(422).send({
+        success: false,
+        message: 'Name, Password and Admin setting are mandatory.'
+    });
+  }
 
 });
 
@@ -144,8 +177,6 @@ apiRoutes.get('/users/:id', function(req, res) {
     });
   }
 });
-
-
 
 // route to return a single user (GET http://localhost:8080/api/users/:id)
 apiRoutes.delete('/users/:id', function(req, res) {
