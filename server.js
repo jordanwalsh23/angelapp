@@ -38,6 +38,7 @@ app.get('/', function(req, res) {
 var apiRoutes = express.Router();
 
 //Routes that don't require any Auth
+apiRoutes = require('./app/controllers/default_controller')(app, apiRoutes);
 apiRoutes = require('./app/controllers/registration_controller')(app, apiRoutes);
 apiRoutes = require('./app/controllers/auth_controller')(app, apiRoutes);
 
@@ -45,7 +46,6 @@ apiRoutes = require('./app/controllers/auth_controller')(app, apiRoutes);
 apiRoutes = require('./app/middleware/tokenauth_middleware')(app, apiRoutes);
 
 //Routes that require auth_controller
-apiRoutes = require('./app/controllers/default_controller')(app, apiRoutes);
 apiRoutes = require('./app/controllers/user_controller')(app, apiRoutes);
 
 // apply the routes to our application with the prefix /api

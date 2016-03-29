@@ -11,7 +11,7 @@ module.exports = function(app, apiRoutes) {
     var thisEmail = req.body.email;
     var thisMobile = req.body.mobile;
 
-    if(thisName && thisPassword && (thisAdmin != undefined) || thisEmail || thisMobile) {
+    if(thisName && thisPassword && (thisAdmin != undefined) && thisEmail && thisMobile) {
       // create a sample user
       var u = new User({
         name: thisName,
