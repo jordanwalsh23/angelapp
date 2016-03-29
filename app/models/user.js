@@ -6,11 +6,11 @@ var mongoose = require('mongoose'),
 
 // set up a mongoose model and pass it using module.exports
 var UserSchema = new Schema({
-    email: { type: String, required: true, index: { unique: true } },
-    password: { type: String, required: true, select: false },
+    email: { type: String, index: { unique: true } },
+    password: { type: String, select: false },
     name: { type: String, required: true },
-    admin: { type: Boolean, required: true },
-    mobile: { type: String, required: true }
+    admin: { type: Boolean },
+    mobile: { type: String }
 });
 
 UserSchema.pre('save', function(next) {

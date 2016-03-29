@@ -11,37 +11,87 @@ module.exports = function(app, apiRoutes) {
     var thisEmail = req.body.email;
     var thisMobile = req.body.mobile;
 
-    if(thisName && thisPassword && (thisAdmin != undefined) && thisEmail && thisMobile) {
-      // create a sample user
-      var u = new User({
-        name: thisName,
-        password: thisPassword,
-        admin: thisAdmin,
-        email: thisEmail,
-        mobile: thisMobile
-      });
+    if(thisName && thisPassword && (thisAdmin != undefined) && (thisEmail || thisMobile)) {
 
-      // save the sample user
-      u.save(function(err) {
-       if (err) {
-         return res.status(422).send({
-             success: false,
-             message: 'User could not be created',
-             details: err.errmsg
-         });
-       }
+      //see if the user already exists without a password
+      User.findOne({
+        $or: [{
+          "mobile": thisMobile
+        },{
+          "email" : thisEmail
+        }]
+      },"+password", function(err, u) {
+        if(err) throw err;
 
-       console.log('User saved successfully');
-       var token = jwt.sign(u, app.get('superSecret'), {
-         expiresIn: app.get('tokenExpiry')
-       });
+        if(u) {
+          var password = u.password;
 
-       // return the information including token as JSON
-       res.json({
-         success: true,
-         message: 'User created successfully',
-         token: token
-       });
+          if(password) {
+            //the user already exists so return an Error
+            return res.status(422).send({
+              success: false,
+              message: 'User could not be created as they already exist. Try logging in instead.'
+            });
+          } else {
+            //the user exists but has no password, set the password and generate the Token
+            u.password = thisPassword;
+            u.save(function(err) {
+              if (err) {
+                return res.status(422).send({
+                  success: false,
+                  message: 'User could not be created',
+                  details: err.errmsg
+                });
+              }
+
+              console.log('User saved successfully');
+              u.password = "";
+              var token = jwt.sign(u, app.get('superSecret'), {
+                expiresIn: app.get('tokenExpiry')
+              });
+
+              // return the information including token as JSON
+              res.json({
+                success: true,
+                message: 'User created successfully',
+                token: token
+              });
+            });
+          }
+        } else {
+          //Create the user from scratch
+
+          var u = new User({
+            name: thisName,
+            password: thisPassword,
+            admin: thisAdmin,
+            email: thisEmail,
+            mobile: thisMobile
+          });
+
+          u.save(function(err) {
+            if (err) {
+              return res.status(422).send({
+                success: false,
+                message: 'User could not be created',
+                details: err.errmsg
+              });
+            }
+
+            console.log('User saved successfully');
+            u.password = "";
+            var token = jwt.sign(u, app.get('superSecret'), {
+              expiresIn: app.get('tokenExpiry')
+            });
+
+            // return the information including token as JSON
+            res.json({
+              success: true,
+              message: 'User created successfully',
+              token: token
+            });
+          });
+        }
       });
     } else {
       return res.status(422).send({

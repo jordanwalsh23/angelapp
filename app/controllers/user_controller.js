@@ -44,6 +44,48 @@ module.exports = function(app, apiRoutes) {
     }
   });
 
+  // route to create a user that doesn't already exist in the system
+  apiRoutes.post('/users', function(req, res) {
+    var thisName = req.body.name;
+    var thisAdmin = req.body.admin;
+    var thisEmail = req.body.email;
+    var thisMobile = req.body.mobile;
+
+    if(thisName && (thisEmail || thisMobile)) {
+      // create a sample user
+      var u = new User({
+        name: thisName,
+        admin: thisAdmin || false,
+        email: thisEmail || "",
+        mobile: thisMobile || ""
+      });
+
+      u.save(function(err) {
+       if (err) {
+         console.log(err);
+         return res.status(422).send({
+             success: false,
+             message: 'User could not be created',
+             details: err.errmsg
+         });
+       }
+
+       console.log('User saved successfully');
+
+       // return the information including token as JSON
+       res.json({
+         success: true,
+         message: 'User created successfully',
+       });
+      });
+    } else {
+      return res.status(422).send({
+          success: false,
+          message: 'Name and either email or mobile are required.'
+      });
+    }
+  });
+
   // route to return a single user (GET http://localhost:8080/api/users/:id)
   apiRoutes.get('/users/:id', function(req, res) {
 

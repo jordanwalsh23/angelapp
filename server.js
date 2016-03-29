@@ -39,6 +39,7 @@ var apiRoutes = express.Router();
 //Routes that don't require any Auth
 apiRoutes = require('./app/controllers/default_controller')(app, apiRoutes);
 apiRoutes = require('./app/controllers/registration_controller')(app, apiRoutes);
+apiRoutes = require('./app/controllers/login_controller')(app, apiRoutes);
 apiRoutes = require('./app/controllers/auth_controller')(app, apiRoutes);
 
 //Token Auth Middleware
