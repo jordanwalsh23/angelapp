@@ -6,8 +6,20 @@ module.exports = function(app, apiRoutes) {
   apiRoutes.get('/users', function(req, res) {
 
     var admin = req.decoded && req.decoded._doc && req.decoded._doc.admin;
+    var query = req.query && req.query.q ? req.query.q : "";
 
-    if(admin) {
+    if(query) {
+      console.log("query is: " + query);
+      User.find({
+        $or: [{
+          "mobile": query
+        },{
+          "email" : query
+        }]
+      }, function(err, users) {
+        res.json(users);
+      });
+    } else if(admin) {
       User.find({}, function(err, users) {
         res.json(users);
       });
@@ -58,9 +70,7 @@ module.exports = function(app, apiRoutes) {
   // route to update a single user (PATCH http://localhost:8080/api/users/:id)
   apiRoutes.patch('/users/:id', function(req, res) {
 
-    var is_admin = req.decoded && req.decoded._doc && req.decoded._doc.admin;
-
-
+    var isAdmin = req.decoded && req.decoded._doc && req.decoded._doc.admin;
 
     var userId = req.params.id;
 
@@ -71,10 +81,10 @@ module.exports = function(app, apiRoutes) {
     var mobile = req.body.mobile;
 
     //Check to see if the user is not an admin and they're trying to upgrade themselves
-    if(!is_admin && admin) {
-      return res.status(422).send({
+    if(!isAdmin && admin) {
+      return res.status(403).send({
           success: false,
-          message: 'Cannot upgrade the current user to \'admin\' permission.'
+          message: 'Forbidden: Cannot upgrade the current user to \'admin\' permission as the current user is not an admin.'
       });
     }
 
@@ -121,6 +131,16 @@ module.exports = function(app, apiRoutes) {
   apiRoutes.delete('/users/:id', function(req, res) {
 
     var userId = req.params.id;
+
+    var isAdmin = req.decoded && req.decoded._doc && req.decoded._doc.admin;
+    var isCurrentUser = req.decoded && req.decoded._doc && req.decoded._doc._id == userId;
+
+    if(!isAdmin && !isCurrentUser) {
+      return res.status(403).send({
+          success: false,
+          message: 'Forbidden: user is not an admin and is attempting to delete another user.'
+      });
+    }
 
     if(userId) {
       console.log("Deleting:" + userId);
