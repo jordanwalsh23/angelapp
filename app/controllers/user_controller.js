@@ -4,9 +4,32 @@ var User   = require('../models/user'); // get our mongoose model
 module.exports = function(app, apiRoutes) {
   // route to return all users (GET http://localhost:8080/api/users)
   apiRoutes.get('/users', function(req, res) {
-    User.find({}, function(err, users) {
-      res.json(users);
-    });
+
+    var admin = req.decoded && req.decoded._doc && req.decoded._doc.admin;
+
+    if(admin) {
+      User.find({}, function(err, users) {
+        res.json(users);
+      });
+    } else {
+      //Only has visibility over the current userId
+      var id = req.decoded && req.decoded._doc && req.decoded._doc._id ? req.decoded._doc._id : "";
+
+      if(id) {
+        User.find({
+          _id: id
+        }, function(err, user){
+          if(err || user == null) {
+            return res.status(404).send({
+                success: false,
+                message: 'User not found'
+            });
+          } else {
+            res.json(user);
+          }
+        });
+      }
+    }
   });
 
   // route to return a single user (GET http://localhost:8080/api/users/:id)
@@ -35,6 +58,10 @@ module.exports = function(app, apiRoutes) {
   // route to update a single user (PATCH http://localhost:8080/api/users/:id)
   apiRoutes.patch('/users/:id', function(req, res) {
 
+    var is_admin = req.decoded && req.decoded._doc && req.decoded._doc.admin;
+
+
+
     var userId = req.params.id;
 
     var name = req.body.name;
@@ -42,6 +69,14 @@ module.exports = function(app, apiRoutes) {
     var admin = req.body.admin;
     var email = req.body.email;
     var mobile = req.body.mobile;
+
+    //Check to see if the user is not an admin and they're trying to upgrade themselves
+    if(!is_admin && admin) {
+      return res.status(422).send({
+          success: false,
+          message: 'Cannot upgrade the current user to \'admin\' permission.'
+      });
+    }
 
     if(userId) {
       console.log(userId);

@@ -17,7 +17,7 @@ var User   = require('./app/models/user'); // get our mongoose model
 var port = process.env.PORT || 8080; // used to create, sign, and verify tokens
 mongoose.connect(config.database); // connect to database
 app.set('superSecret', process.env.ANGEL_APP_SUPER_SECRET); // secret variable
-app.set('tokenExpiry', 60);
+app.set('tokenExpiry', 3600);
 
 // use body parser so we can get info from POST and/or URL parameters
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -29,7 +29,6 @@ app.use(morgan('dev'));
 // =======================
 // routes ================
 // =======================
-// basic route
 app.get('/', function(req, res) {
     res.send('Hello! The API is at http://localhost:' + port + '/api');
 });
